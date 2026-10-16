@@ -1,10 +1,23 @@
+import os
+import win32com.client
+
 from groq import Groq
 import subprocess
 import json
+import edge_tts
+import asyncio
+import time
+
+speaker = win32com.client.Dispatch("SAPI.SpVoice")
 
 
-client = Groq(api_key="PUT_YOUR_API_KEY_HERE")
 
+client = Groq(api_key="PUT YOUR API KEY HERE")
+
+
+voices = speaker.GetVoices()
+
+speaker.Voice = voices[1]
 
 
 while True:
@@ -18,16 +31,18 @@ while True:
         ]
 
     response = client.chat.completions.create(
-        model="qwen/qwen3.8-27b",
+        model="openai/gpt-oss-120b",
         messages=messages_list
     )
 
     if "THIS MAKES THE RESPONSE A NORMAL ONE.,.," in response.choices[0].message.content:
 
 
+        AI_response = response.choices[0].message.content.replace('THIS MAKES THE RESPONSE A NORMAL ONE.,.,', '')
 
-        print(f"AI: {response.choices[0].message.content.replace('THIS MAKES THE RESPONSE A NORMAL ONE.,.,', '')}")
+        print(AI_response)
 
+        speaker.Speak(AI_response)
 
     else:
 
@@ -44,6 +59,12 @@ while True:
 
             print("opened", parsed["target"])
 
+            speaker.Speak(f"opened {parsed['target']}")
+
+
         elif parsed["action"] == "TERMINATE":
 
             subprocess.run(["taskkill", "/F", "/T", "/IM", parsed["target"]])
+
+            speaker.Speak(f"closed {parsed['target']}")
+
